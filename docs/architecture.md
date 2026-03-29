@@ -1,64 +1,160 @@
-# FieldView — Business & Impact Model (Back-of-Envelope)
+# FieldView — System Architecture & Agent Workflow
 
-FieldView targets the “**Misinformation Tax**”: the time and cognitive load fans spend sorting truth from clickbait in fast-moving sports news.
+This document describes the **full agentic architecture** of FieldView and how agents communicate, integrate with tools, and fail safely.
 
-This model uses transparent assumptions and simple math so it can be refined with real user data.
-
----
-
-## 1) Assumptions (India-focused)
-
-- **Addressable market:** 1,000,000 highly engaged digital football fans in India
-- **Time wasted today:** ~10 minutes/day/user consuming or verifying untrusted rumors
-- **Time saved with FieldView:** up to 10 minutes/day/user via tier labels + one-click BS Filter  
-  (upper-bound assumption; real value should be measured post-launch)
+**Current repo status (2026-03-29):** Frontend prototype only. Backend/LLM agents are described as the **target deployment design**.
 
 ---
 
-## 2) Time Saved (Core Impact)
+## 1) System Diagram (Target Deployment)
 
-**Total time reclaimed/day**
-- 1,000,000 users × 10 min/day = **10,000,000 minutes/day**
-- 10,000,000 minutes/day ÷ 60 = **166,666 hours/day**
+```
+[Live Internet Data]
+   └─ Reddit r/soccer/new.json (public JSON feed)
+            |
+            v
+[Ingestion Agent / Scraper]
+  Node.js + Axios
+  - fetch top N new posts
+  - normalize to raw items
+            |
+            v
+[Verification Brain / Reasoning Agent]
+  LLM (e.g., Gemini)
+  - extract cited journalist/source
+  - validate vs Trust Dictionary (hardcoded)
+  - assign Tier (1/2/3)
+  - rewrite headline
+  - produce reasoning/audit trail
+            |
+            v
+[Structured Output Contract]
+  JSON items:
+  { tier, source, cleaned_headline, reasoning, club, category, ts }
+            |
+            v
+[Client Application / UI Agent]
+  Vanilla JS frontend
+  - render tiered cards (green/yellow/red)
+  - personalization (clubs/leagues)
+  - BS Filter hides Tier 3 client-side
+```
 
-**Conservative scenario (20% adoption)**
-- 200,000 users × 10 min/day = 2,000,000 minutes/day
-- = **33,333 hours/day**
+### Prototype mapping (this repo)
+- The **Client Application / UI Agent** is implemented in `fieldview.html`.
+- The **Structured Output Contract** is simulated via a hardcoded mock dataset (`ALL_NEWS`) to demonstrate the intended UX.
 
 ---
 
-## 3) Cost Reduction (Why AI verification scales)
+## 2) Agent Roles & Responsibilities
 
-### Baseline
-Traditional verification relies on human moderators/editors or delayed community correction, which does not scale with rumor volume.
+### A) Ingestion Agent (Scraper Agent)
+**Goal:** Convert chaotic “internet firehose” data into a clean list of candidate items for verification.
 
-### Target design
-FieldView’s planned pipeline verifies items automatically (LLM + Trust Dictionary).
-- Claimed unit cost target: **~$0.0001/article** (assumption; depends on tokens, batching, and model pricing)
+**Responsibilities**
+- Poll Reddit feed (e.g., `r/soccer/new.json`) on an interval or on-demand.
+- Extract fields (title, permalink, timestamp).
+- Deduplicate and drop obvious spam patterns.
 
-**Illustrative example**
-- Verify 50,000 items/day:
-  - Cost/day ≈ 50,000 × $0.0001 = **$5/day**
-  - Cost/month ≈ **$150/month**
+**Output**
+- `raw_items[]` with unstructured text.
 
-> Note: This repository is a frontend prototype; verification/ingestion is the next step.
-
----
-
-## 4) Monetization (Premium “Noise-Free”)
-
-- **Price:** ₹99/month
-- **Conversion:** 2% of addressable market
-  - 1,000,000 × 2% = **20,000 paying users**
-
-**Monthly Recurring Revenue (MRR)**
-- 20,000 × ₹99 = **₹1,980,000/month (~₹2.0M MRR)**
+**Tool integrations**
+- HTTP client (Axios/fetch)
+- (Optional) cache layer to avoid rate limits
 
 ---
 
-## 5) What Would Validate These Assumptions
-To convert this model into measured impact, we would track:
-- time-on-feed before/after using BS Filter
-- % of sessions with BS Filter enabled
-- retention lift from reduced misinformation exposure
-- premium conversion rate and churn
+### B) Verification Brain (Reasoning Agent / Digital Editor-in-Chief)
+**Goal:** Produce safe, structured, trust-scored outputs.
+
+**Responsibilities**
+- Prompted to operate under strict constraints:
+  1. Identify cited journalist/source (or mark “unknown”)
+  2. Cross-check against **Trust Dictionary** (hardcoded mapping of source → tier and/or accuracy)
+  3. Assign Tier:
+     - **Tier 1:** verified/high trust
+     - **Tier 2:** plausible/needs confirmation
+     - **Tier 3:** low trust / unknown / clickbait patterns (safe default)
+  4. Rewrite headline into consistent, clean format
+  5. Generate a short reasoning/audit trail (for transparency)
+
+**Output**
+- `verified_items[]` (strict JSON contract)
+
+**Tool integrations**
+- LLM API (e.g., Gemini)
+- Trust Dictionary (local object/file)
+
+---
+
+### C) UI Agent (Client Application)
+**Goal:** Present trust signals clearly and let users control noise.
+
+**Responsibilities (implemented)**
+- Render cards with tier colors and accuracy badges.
+- Provide controls:
+  - club quick-switch
+  - category tabs
+  - search and add-club flows
+  - **BS Filter** (hide Tier 3 immediately)
+- Persist preferences in `localStorage`.
+
+**Data dependencies**
+- Expects a stable JSON shape (whether mocked or delivered by backend).
+
+---
+
+## 3) Communication & Contracts
+
+### Target contract: `/api/news`
+The backend returns:
+```json
+{
+  "items": [
+    {
+      "id": "string",
+      "tier": 1,
+      "source": "string",
+      "headline": "string",
+      "reasoning": "string",
+      "category": "LATEST|MATCH|TRANSFER|SQUAD|CLUB",
+      "club": "string",
+      "timestamp": "ISO-8601"
+    }
+  ]
+}
+```
+
+### Prototype contract (this repo)
+The same structure is simulated in the `ALL_NEWS` dataset inside `fieldview.html`.
+
+---
+
+## 4) Error Handling & Safe-Fail Logic
+
+### A) API timeouts / LLM failures (Target)
+- Wrap verification calls in `try/catch`.
+- If an item fails verification/parsing:
+  - return `null` for that item
+  - drop it from results: `items.filter(x => x !== null)`
+- The feed should **never crash** due to a single bad post.
+
+### B) Source not found (Target)
+- If no cited journalist/source is detected or it’s missing from Trust Dictionary:
+  - **default to Tier 3** (safe-fail)
+This protects the user against unverified information.
+
+### C) Client-side resilience (Prototype implemented)
+- safe localStorage parsing
+- empty state UI when no results
+- image error fallbacks
+- modal close logic (ESC / background click)
+
+---
+
+## 5) Security & Abuse Considerations (Target)
+- Rate limiting on ingestion endpoints
+- Caching and deduplication
+- Input sanitization (treat all external text as untrusted)
+- Logging of verification failures for monitoring
