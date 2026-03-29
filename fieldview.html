@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FieldView — See the Field Clearly</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0A0A;
+    --bg2: #111111;
+    --card: #1A1A1A;
+    --border: #2A2A2A;
+    --text: #FFFFFF;
+    --text2: #888888;
+    --text3: #555555;
+    --green: #00D084;
+    --yellow: #FFD700;
+    --red: #FF4444;
+    --green-dim: rgba(0,208,132,0.12);
+    --yellow-dim: rgba(255,215,0,0.12);
+    --red-dim: rgba(255,68,68,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ─── LANDING ─── */
+  #screen-landing {
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,208,132,0.15) 0%, transparent 60%), var(--bg);
+    align-items: center; justify-content: center; text-align: center; padding: 40px 24px;
+  }
+  .logo-mark {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px; letter-spacing: 3px; color: var(--text);
+    display: flex; align-items: center; gap: 12px; justify-content: center;
+  }
+  .logo-mark span { color: var(--green); }
+  .tagline { color: var(--green); font-size: 13px; letter-spacing: 4px; text-transform: uppercase; margin: 8px 0 40px; }
+  .hero-heading { font-family: 'Bebas Neue', sans-serif; font-size: clamp(40px,8vw,80px); line-height: 1; margin-bottom: 16px; }
+  .hero-heading em { color: var(--green); font-style: normal; }
+  .hero-sub { color: var(--text2); font-size: 18px; margin-bottom: 48px; max-width: 400px; }
+  .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn { padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-family: inherit; }
+  .btn-primary { background: var(--green); color: #000; }
+  .btn-primary:hover { background: #00eea0; transform: translateY(-1px); }
+  .btn-outline { background: transparent; color: var(--text); border: 2px solid var(--border); }
+  .btn-outline:hover { border-color: var(--green); color: var(--green); }
+  .btn-full { width: 100%; margin-top: 8px; }
+  .btn-ghost { background: transparent; color: var(--text2); cursor: pointer; border: none; font-family: inherit; font-size: 14px; text-decoration: underline; padding: 8px; }
+  .btn-ghost:hover { color: var(--text); }
+
+  /* ─── AUTH PAGES ─── */
+  .auth-wrap {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 40px 24px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,208,132,0.08) 0%, transparent 60%), var(--bg);
+  }
+  .auth-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 40px; width: 100%; max-width: 420px;
+  }
+  .auth-logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--green); margin-bottom: 8px; }
+  .auth-card h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .auth-card p { color: var(--text2); font-size: 14px; margin-bottom: 32px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 6px; font-weight: 500; letter-spacing: 0.5px; }
+  .field input {
+    width: 100%; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px; color: var(--text);
+    font-size: 15px; font-family: inherit; transition: border-color 0.2s;
+  }
+  .field input:focus { outline: none; border-color: var(--green); }
+  .field input::placeholder { color: var(--text3); }
+  .auth-link { text-align: center; margin-top: 20px; color: var(--text2); font-size: 14px; }
+  .auth-link a { color: var(--green); cursor: pointer; text-decoration: none; font-weight: 500; }
+  .auth-link a:hover { text-decoration: underline; }
+  .error-msg { color: var(--red); font-size: 13px; margin-top: -8px; margin-bottom: 12px; display: none; }
+
+  /* ─── ONBOARDING ─── */
+  .onboard-wrap {
+    min-height: 100vh; padding: 40px 24px;
+    display: flex; flex-direction: column; align-items: center;
+    background: var(--bg);
+  }
+  .progress-bar {
+    display: flex; gap: 8px; margin-bottom: 48px;
+  }
+  .progress-dot {
+    width: 32px; height: 4px; border-radius: 2px; background: var(--border);
+    transition: background 0.3s;
+  }
+  .progress-dot.done { background: var(--green); }
+  .onboard-card { width: 100%; max-width: 520px; }
+  .onboard-card h2 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+  .onboard-card p { color: var(--text2); font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
+  .tier-list { list-style: none; margin-bottom: 40px; }
+  .tier-list li {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 20px; margin-bottom: 10px;
+  }
+  .tier-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+  .tier-dot.g { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .tier-dot.y { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+  .tier-dot.r { background: var(--red); box-shadow: 0 0 8px var(--red); }
+  .tier-list .label { font-weight: 600; font-size: 15px; }
+  .tier-list .sub { color: var(--text2); font-size: 13px; margin-top: 2px; }
+
+  /* ─── SPORTS ─── */
+  .sport-card {
+    background: var(--card); border: 2px solid var(--border); border-radius: 12px;
+    padding: 18px 20px; margin-bottom: 10px; display: flex; align-items: center;
+    gap: 14px; cursor: pointer; transition: border-color 0.2s;
+  }
+  .sport-card.selected { border-color: var(--green); }
+  .sport-card.disabled { opacity: 0.4; cursor: not-allowed; }
+  .sport-card .sport-icon { font-size: 28px; }
+  .sport-card .sport-name { font-weight: 600; font-size: 16px; }
+  .sport-card .coming-soon { font-size: 11px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+  .sport-check { margin-left: auto; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; }
+  .sport-card.selected .sport-check { background: var(--green); border-color: var(--green); color: #000; font-size: 12px; font-weight: 700; }
+
+  /* ─── CLUBS ─── */
+  .search-input-wrap { position: relative; margin-bottom: 24px; }
+  .search-input-wrap input {
+    width: 100%; background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px 12px 44px; color: var(--text);
+    font-size: 15px; font-family: inherit;
+  }
+  .search-input-wrap input:focus { outline: none; border-color: var(--green); }
+  .search-icon-inner { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 18px; }
+  .section-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; font-weight: 600; }
+  .clubs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 24px; }
+  .club-chip {
+    background: var(--card); border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+    cursor: pointer; transition: all 0.15s; user-select: none;
+  }
+  .club-chip:hover { border-color: #444; }
+  .club-chip.selected { border-color: var(--green); background: var(--green-dim); }
+  .club-badge {
+    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-weight: 700; font-size: 11px; flex-shrink: 0;
+  }
+  .club-name { font-size: 13px; font-weight: 500; line-height: 1.2; }
+  .club-league { font-size: 11px; color: var(--text3); }
+  .check-icon { margin-left: auto; color: var(--green); font-size: 14px; display: none; }
+  .club-chip.selected .check-icon { display: block; }
+  .selection-count { color: var(--text2); font-size: 13px; margin-bottom: 16px; }
+  .selection-count span { color: var(--green); font-weight: 600; }
+
+  /* ─── NOTIFICATIONS ─── */
+  .notif-features { margin-bottom: 40px; }
+  .notif-row {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+  }
+  .notif-row:last-child { border-bottom: none; }
+  .notif-check { width: 22px; height: 22px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; color: #000; font-weight: 700; margin-top: 2px; }
+  .notif-text strong { font-size: 15px; display: block; margin-bottom: 3px; }
+  .notif-text span { font-size: 13px; color: var(--text2); }
+
+  /* ─── FEED ─── */
+  #screen-feed { flex-direction: column; min-height: 100vh; }
+
+  .feed-header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,10,0.95); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    height: 60px; display: flex; align-items: center;
+    padding: 0 20px; gap: 16px;
+  }
+  .header-logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; display: flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text); }
+  .header-logo span { color: var(--green); }
+  .header-logo .ball { font-size: 18px; }
+  .header-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    background: none; border: none; color: var(--text2); cursor: pointer;
+    width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; transition: all 0.15s; position: relative;
+  }
+  .icon-btn:hover { background: var(--card); color: var(--text); }
+  .notif-badge {
+    position: absolute; top: 4px; right: 4px; width: 8px; height: 8px;
+    background: var(--red); border-radius: 50%; border: 1.5px solid var(--bg);
+  }
+  .bs-toggle {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; color: var(--text2);
+    white-space: nowrap; letter-spacing: 0.5px;
+  }
+  .bs-toggle.on { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--green), #00a066);
+    display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #000; cursor: pointer;
+  }
+
+  .feed-body { display: flex; flex: 1; }
+
+  /* ─── SIDEBAR ─── */
+  .feed-sidebar {
+    width: 200px; flex-shrink: 0; border-right: 1px solid var(--border);
+    padding: 24px 16px; position: sticky; top: 60px; height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+  .sidebar-section { margin-bottom: 28px; }
+  .sidebar-heading { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; font-weight: 600; }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px; cursor: pointer;
+    font-size: 14px; transition: background 0.15s; color: var(--text2);
+  }
+  .sidebar-item:hover { background: var(--card); color: var(--text); }
+  .sidebar-item.active { background: var(--green-dim); color: var(--green); font-weight: 600; }
+  .sidebar-item.coming { opacity: 0.35; cursor: not-allowed; }
+  .sidebar-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+
+  /* ─── MAIN FEED ─── */
+  .feed-main { flex: 1; min-width: 0; padding: 20px; max-width: 780px; }
+
+  .quick-switch {
+    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 16px; margin-bottom: 8px;
+    scrollbar-width: none;
+  }
+  .quick-switch::-webkit-scrollbar { display: none; }
+  .qs-tab {
+    padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 500;
+    cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    border: 1.5px solid var(--border); background: transparent; color: var(--text2);
+    font-family: inherit;
+  }
+  .qs-tab:hover { border-color: #444; color: var(--text); }
+  .qs-tab.active { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+  .qs-add {
+    padding: 8px 14px; border-radius: 20px; font-size: 14px;
+    cursor: pointer; white-space: nowrap; border: 1.5px dashed var(--border);
+    background: transparent; color: var(--text3); font-family: inherit;
+    transition: all 0.15s;
+  }
+  .qs-add:hover { border-color: var(--green); color: var(--green); }
+
+  .cat-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .cat-tab {
+    padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer;
+    color: var(--text3); border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: all 0.15s; background: none; border-top: none; border-left: none; border-right: none;
+    font-family: inherit; white-space: nowrap;
+  }
+  .cat-tab:hover { color: var(--text2); }
+  .cat-tab.active { color: var(--text); border-bottom-color: var(--green); }
+
+  /* ─── NEWS CARD ─── */
+  .news-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; margin-bottom: 14px; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    border-left: 4px solid transparent;
+    animation: fadeIn 0.3s ease forwards;
+    opacity: 0;
+  }
+  @keyframes fadeIn { to { opacity: 1; } }
+  .news-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); border-color: #333; }
+  .news-card.t1 { border-left-color: var(--green); }
+  .news-card.t2 { border-left-color: var(--yellow); }
+  .news-card.t3 { border-left-color: var(--red); }
+  .card-inner { padding: 16px 20px; }
+  .card-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .tier-badge {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 3px 8px; border-radius: 4px; text-transform: uppercase;
+  }
+  .tier-badge.t1 { background: var(--green-dim); color: var(--green); }
+  .tier-badge.t2 { background: var(--yellow-dim); color: var(--yellow); }
+  .tier-badge.t3 { background: var(--red-dim); color: var(--red); }
+  .card-source { font-size: 13px; font-weight: 600; color: var(--text); }
+  .card-time { font-size: 12px; color: var(--text3); margin-left: auto; }
+  .card-headline { font-size: 16px; font-weight: 600; line-height: 1.4; margin-bottom: 12px; }
+  .card-img {
+    width: 100%; height: 200px; object-fit: cover; display: block;
+    background: var(--bg2);
+  }
+  .card-img-wrap { position: relative; overflow: hidden; }
+  .card-img-placeholder {
+    width: 100%; height: 200px; background: linear-gradient(135deg, var(--bg2), #1f1f1f);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; color: var(--text3);
+  }
+  .card-footer { display: flex; align-items: center; gap: 16px; padding: 12px 20px; border-top: 1px solid var(--border); }
+  .accuracy-badge {
+    font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 12px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .accuracy-badge.high { background: var(--green-dim); color: var(--green); }
+  .accuracy-badge.mid { background: var(--yellow-dim); color: var(--yellow); }
+  .accuracy-badge.low { background: var(--red-dim); color: var(--red); }
+  .card-actions { display: flex; align-items: center; gap: 14px; margin-left: auto; }
+  .card-action { display: flex; align-items: center; gap: 5px; color: var(--text3); font-size: 13px; cursor: pointer; transition: color 0.15s; }
+  .card-action:hover { color: var(--text); }
+
+  /* ─── SKELETON ─── */
+  .skeleton { background: linear-gradient(90deg, var(--card) 25%, #232323 50%, var(--card) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .skel-card { height: 300px; margin-bottom: 14px; border-radius: 12px; }
+
+  /* ─── SEARCH MODAL ─── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+    z-index: 200; display: none; align-items: flex-start; justify-content: center; padding-top: 80px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    width: 90%; max-width: 480px; overflow: hidden;
+    animation: slideDown 0.2s ease;
+  }
+  @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } }
+  .modal-search {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+  }
+  .modal-search input {
+    flex: 1; background: none; border: none; color: var(--text);
+    font-size: 16px; font-family: inherit; outline: none;
+  }
+  .modal-search input::placeholder { color: var(--text3); }
+  .modal-close { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 20px; padding: 4px; }
+  .search-results { max-height: 360px; overflow-y: auto; }
+  .search-result {
+    display: flex; align-items: center; gap: 14px; padding: 14px 20px;
+    cursor: pointer; transition: background 0.1s; border-bottom: 1px solid var(--border);
+  }
+  .search-result:last-child { border-bottom: none; }
+  .search-result:hover { background: var(--bg2); }
+  .search-result .club-name { font-size: 15px; font-weight: 500; }
+  .search-result .club-league { font-size: 12px; color: var(--text3); }
+  .no-results { padding: 40px; text-align: center; color: var(--text3); font-size: 14px; }
+
+  /* ─── ADD CLUB MODAL ─── */
+  .add-club-grid { padding: 16px; display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; max-height: 400px; overflow-y: auto; }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state { padding: 60px 20px; text-align: center; color: var(--text3); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h3 { color: var(--text2); font-size: 18px; margin-bottom: 8px; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .feed-sidebar { display: none; }
+    .feed-main { padding: 12px; }
+    .cat-tab { padding: 10px 12px; font-size: 13px; }
+    .bs-toggle { font-size: 11px; padding: 4px 10px; }
+  }
+  @media (max-width: 480px) {
+    .hero-heading { font-size: 38px; }
+    .auth-card { padding: 28px 20px; }
+  }
+
+  /* ─── LOAD MORE ─── */
+  .load-more-btn {
+    width: 100%; padding: 14px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text2); font-size: 14px; font-family: inherit;
+    cursor: pointer; margin-top: 8px; transition: all 0.15s;
+  }
+  .load-more-btn:hover { border-color: var(--green); color: var(--green); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SCREEN 1: LANDING                      -->
+<!-- ══════════════════════════════════════ -->
+<div id="screen-landing" class="screen">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;text-align:center;background:radial-gradient(ellipse at 50% 0%,rgba(0,208,132,0.15) 0%,transparent 60%),var(--bg)">
+    <div class="logo-mark">⚽ FIELD<span>VIEW</span></div>
+    <div class="tagline">See the field clearly</div>
+    <h1 class="hero-heading">Stop Believing<br><em>Fake</em> Transfer News</h1>
+    <p class="hero-sub">AI-powered tier verification for every transfer rumor, in real-time.</p>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="navigate('register')">Create Account</button>
+      <button class="btn btn-outline" onclick="navigate('login')">Login</button>
+    </div>
+    <div style="margin-top:60px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:520px;width:100%">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;border-left:4px solid var(--green)">
+        <div style="color:var(--green);font-size:22px;margin-bottom:8px">🟢</div>
+        <div style="font-weight:700;font-size:13px">Tier 1</div>
+        <div style="color:var(--text3);font-size:12px;margin-top:4px">Verified ✓</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;border-left:4px solid var(--yellow)">
+        <div style="color:var(--yellow);font-size:22px;margin-bottom:8px">🟡</div>
+        <div style="font-weight:700;font-size:13px">Tier 2</div>
+        <div style="color:var(--text3);font-size:12px;margin-top:4px">Plausible</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;border-left:4px solid var(--red)">
+        <div style="color:var(--red);font-size:22px;margin-bottom:8px">🔴</div>
+        <div style="font-weight:700;font-size:13px">Tier 3</div>
+        <div style="color:var(--text3);font-size:12px;margin-top:4px">Likely Fake</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SCREEN 2: LOGIN                        -->
+<!-- ══════════════════════════════════════ -->
+<div id="screen-login" class="screen">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">⚽ FIELDVIEW</div>
+      <h2>Welcome Back</h2>
+      <p>Sign in to your personalized feed</p>
+      <div class="field">
+        <label>EMAIL</label>
+        <input type="email" id="login-email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>PASSWORD</label>
+        <input type="password" id="login-pw" placeholder="••••••••">
+      </div>
+      <div class="error-msg" id="login-err">Invalid credentials. Try any email/password.</div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">Login</button>
+      <div class="auth-link">Don't have an account? <a onclick="navigate('register')">Create Account</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SCREEN 3: REGISTER                     -->
+<!-- ══════════════════════════════════════ -->
+<div id="screen-register" class="screen">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">⚽ FIELDVIEW</div>
+      <h2>Create Your Account</h2>
+      <p>Join thousands of football fans who trust real news</p>
+      <div class="field">
+        <label>EMAIL</label>
+        <input type="email" id="reg-email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>PASSWORD</label>
+        <input type="password" id="reg-pw" placeholder="••••••••">
+      </div>
+      <div class="field">
+        <label>CONFIRM PASSWORD</label>
+        <input type="password" id="reg-pw2" placeholder="••••••••">
+      </div>
+      <div class="error-msg" id="reg-err">Passwords do not match.</div>
+      <button class="btn btn-primary btn-full" onclick="doRegister()">Create Account</button>
+      <div class="auth-link">Already have an account? <a onclick="navigate('login')">Login</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SCREEN 4: ONBOARDING WELCOME           -->
+<!-- ══════════════════════════════════════ -->
+<div id="screen-onboard-welcome" class="screen">
+  <div class="onboard-wrap">
+    <div class="progress-bar">
+      <div class="progress-dot done"></div>
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
+    </div>
+    <div class="onboard-card">
+      <h2>👋 Welcome to FieldView</h2>
+      <p>We grade every journalist based on their historical prediction accuracy — so you know exactly who to trust.</p>
+      <ul class="tier-list">
+        <li>
+          <div class="tier-dot g"></div>
+          <div>
+            <div class="label">🟢 Green — Tier 1 · Verified</div>
+            <div class="sub">Journalist has 90%+ accuracy. Reliable sources, confirmed deals.</div>
+          </div>
+        </li>
+        <li>
+          <div class="tier-dot y"></div>
+          <div>
+            <div class="label">🟡 Yellow — Tier 2 · Plausible</div>
+            <div class="sub">70-90% accuracy. Credible story but wait for confirmation.</div>
+          </div>
+        </li>
+        <li>
+          <div class="tier-dot r"></div>
+          <div>
+            <div class="label">🔴 Red — Tier 3 · Likely Fake</div>
+            <div class="sub">Below 70% accuracy. Tabloid speculation or clickbait rumors.</div>
+          </div>
+        </li>
+      </ul>
+      <button class="btn btn-primary btn-full" onclick="navigate('onboard-sports')">Get Started →</button>
+    </div>
+    <div style="margin-top:12px;color:var(--text3);font-size:13px">Step 1 of 4</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SCREEN 5: ONBOARDING SPORTS            -->
+<!-- ══════════════════════════════════════ -->
+<div id="screen-onboard-sports" class="screen">
+  <div class="onboard-wrap">
+    <div class="progress-bar">
+      <div class="progress-dot done"></div>
+      <div class="progress-dot done"></div>
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
+    </div>
+    <div class="onboard-card">
+      <h2>Which sports do you follow?</h2>
+      <p>Select your sports to personalize your feed.</p>
+      <div class="sport-card selected" style="cursor:default">
+        <div class="sport-icon">⚽</div>
+        <div><div class="sport-name">Football</div><div class="coming-soon">Your primary sport</div></div>
+        <div class="sport-check">✓</div>
+      </div>
+      <div class="sport-card disabled">
+        <div class="sport-icon">🏏</div>
+        <div><div class="sport-name">Cricket</div><div class="coming-soon">Coming Soon</div></div>
+        <div class="sport-check"></div>
+      </div>
+      <div class="sport-card disabled">
+        <div class="sport-icon">🏀</div>
+        <div><div class="sport-name">Basketball</div><div class="coming-soon">Coming Soon</div></div>
+        <div class="sport-check"></div>
+      </div>
+      <div class="sport-card disabled">
+        <div class="sport-icon">🎾</div>
+        <div><div class="sport-name">Tennis</div><div class="coming-soon">Coming Soon</div></div>
+        <div class="sport-check"></div>
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-top:24px" onclick="navigate('onboard-clubs')">Continue →</button>
+    </div>
+    <div style="margin-top:12px;color:var(--text3);font-size:13px">Step 2 of 4</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SCREEN 6: ONBOARDING CLUBS             -->
+<!-- ══════════════════════════════════════ -->
+<div id="screen-onboard-clubs" class="screen">
+  <div class="onboard-wrap">
+    <div class="progress-bar">
+      <div class="progress-dot done"></div>
+      <div class="progress-dot done"></div>
+      <div class="progress-dot done"></div>
+      <div class="progress-dot"></div>
+    </div>
+    <div class="onboard-card">
+      <h2>Select Clubs & Leagues</h2>
+      <p>Personalize your feed. Follow any clubs or leagues you care about.</p>
+      <div class="search-input-wrap">
+        <span class="search-icon-inner">🔍</span>
+        <input type="text" id="club-search" placeholder="Search clubs..." oninput="filterClubs(this.value)">
+      </div>
+      <div class="section-label">Leagues</div>
+      <div class="clubs-grid" id="leagues-grid"></div>
+      <div class="section-label">Clubs</div>
+      <div class="clubs-grid" id="clubs-grid"></div>
+      <div class="selection-count">Selected: <span id="sel-count">0</span> items</div>
+      <button class="btn btn-primary btn-full" id="clubs-continue-btn" disabled onclick="navigate('onboard-notifications')" style="opacity:0.4;cursor:not-allowed">Continue →</button>
+    </div>
+    <div style="margin-top:12px;color:var(--text3);font-size:13px">Step 3 of 4</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SCREEN 7: ONBOARDING NOTIFICATIONS     -->
+<!-- ══════════════════════════════════════ -->
+<div id="screen-onboard-notifications" class="screen">
+  <div class="onboard-wrap">
+    <div class="progress-bar">
+      <div class="progress-dot done"></div>
+      <div class="progress-dot done"></div>
+      <div class="progress-dot done"></div>
+      <div class="progress-dot done"></div>
+    </div>
+    <div class="onboard-card">
+      <h2>🔔 Stay Updated</h2>
+      <p>Never miss a verified transfer. We only notify you about what matters.</p>
+      <div class="notif-features">
+        <div class="notif-row">
+          <div class="notif-check">✓</div>
+          <div class="notif-text">
+            <strong>Breaking Transfer News</strong>
+            <span>Tier 1 verified deals only — no noise, no rumors</span>
+          </div>
+        </div>
+        <div class="notif-row">
+          <div class="notif-check">✓</div>
+          <div class="notif-text">
+            <strong>Match Updates</strong>
+            <span>Live scores and results for your followed clubs</span>
+          </div>
+        </div>
+        <div class="notif-row">
+          <div class="notif-check">✓</div>
+          <div class="notif-text">
+            <strong>Fake News Alerts</strong>
+            <span>Viral rumors debunked by our AI verification system</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="enableNotifs()">Enable Notifications 🔔</button>
+      <div style="text-align:center;margin-top:12px">
+        <button class="btn-ghost" onclick="skipNotifs()">Maybe Later</button>
+      </div>
+    </div>
+    <div style="margin-top:12px;color:var(--text3);font-size:13px">Step 4 of 4</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SCREEN 8: FEED                         -->
+<!-- ══════════════════════════════════════ -->
+<div id="screen-feed" class="screen">
+  <!-- HEADER -->
+  <header class="feed-header">
+    <div class="header-logo">
+      <span class="ball">⚽</span>FIELD<span>VIEW</span>
+    </div>
+    <div class="header-actions">
+      <button class="bs-toggle" id="bs-toggle-btn" onclick="toggleBS()">BS Filter: OFF</button>
+      <button class="icon-btn" onclick="openSearch()" title="Search">🔍</button>
+      <button class="icon-btn" title="Notifications">
+        🔔<div class="notif-badge"></div>
+      </button>
+      <div class="avatar" id="user-avatar" onclick="doLogout()" title="Logout">F</div>
+    </div>
+  </header>
+
+  <div class="feed-body">
+    <!-- SIDEBAR -->
+    <aside class="feed-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">⚽ Sports</div>
+        <div class="sidebar-item active" style="cursor:default">
+          <div class="sidebar-dot"></div>
+          Football
+          <span style="margin-left:auto;color:var(--green);font-size:12px">✓</span>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:16px">
+        <div class="sidebar-heading" style="margin-bottom:10px">Coming Soon</div>
+        <div class="sidebar-item coming">🏏 Cricket</div>
+        <div class="sidebar-item coming">🏀 Basketball</div>
+        <div class="sidebar-item coming">🎾 Tennis</div>
+      </div>
+    </aside>
+
+    <!-- MAIN FEED -->
+    <main class="feed-main">
+      <!-- Quick switch -->
+      <div class="quick-switch" id="quick-switch"></div>
+
+      <!-- Category tabs -->
+      <div class="cat-tabs" id="cat-tabs">
+        <button class="cat-tab active" onclick="switchTab('LATEST',this)">Latest</button>
+        <button class="cat-tab" onclick="switchTab('MATCH',this)">Matches</button>
+        <button class="cat-tab" onclick="switchTab('TRANSFER',this)">Transfer</button>
+        <button class="cat-tab" onclick="switchTab('SQUAD',this)">Squad</button>
+        <button class="cat-tab" onclick="switchTab('CLUB',this)">Club</button>
+      </div>
+
+      <!-- Feed cards -->
+      <div id="feed-cards"></div>
+      <button class="load-more-btn" id="load-more-btn" onclick="loadMore()">Load more stories</button>
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SEARCH MODAL                           -->
+<!-- ══════════════════════════════════════ -->
+<div class="modal-overlay" id="search-modal" onclick="closeSearchOnBg(event)">
+  <div class="modal-box">
+    <div class="modal-search">
+      <span style="font-size:18px;color:var(--text3)">🔍</span>
+      <input type="text" id="search-input" placeholder="Search for clubs..." oninput="doSearch(this.value)" autofocus>
+      <button class="modal-close" onclick="closeSearch()">✕</button>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- ADD CLUB MODAL                         -->
+<!-- ══════════════════════════════════════ -->
+<div class="modal-overlay" id="add-club-modal" onclick="closeAddClubOnBg(event)">
+  <div class="modal-box">
+    <div class="modal-search">
+      <span style="font-size:18px;color:var(--text3)">➕</span>
+      <span style="font-size:15px;font-weight:600">Add Club to Quick Switch</span>
+      <button class="modal-close" onclick="closeAddClub()">✕</button>
+    </div>
+    <div class="add-club-grid" id="add-club-grid"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+
+const LEAGUES = [
+  { id:'pl', name:'Premier League', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', bg:'#3d195b', fg:'#fff' },
+  { id:'ll', name:'La Liga', flag:'🇪🇸', bg:'#c41e3a', fg:'#fff' },
+  { id:'sa', name:'Serie A', flag:'🇮🇹', bg:'#003399', fg:'#fff' },
+  { id:'bl', name:'Bundesliga', flag:'🇩🇪', bg:'#d3010c', fg:'#fff' },
+  { id:'l1', name:'Ligue 1', flag:'🇫🇷', bg:'#003087', fg:'#fff' },
+  { id:'cl', name:'Champions League', flag:'⭐', bg:'#001f5b', fg:'#ffd700' },
+];
+
+const ALL_CLUBS = [
+  { id:'arsenal', name:'Arsenal', badge:'AFC', bg:'#EF0107', fg:'#fff', league:'Premier League' },
+  { id:'chelsea', name:'Chelsea', badge:'CFC', bg:'#034694', fg:'#fff', league:'Premier League' },
+  { id:'liverpool', name:'Liverpool', badge:'LFC', bg:'#C8102E', fg:'#fff', league:'Premier League' },
+  { id:'manutd', name:'Manchester United', badge:'MUFC', bg:'#DA291C', fg:'#fff', league:'Premier League' },
+  { id:'mancity', name:'Manchester City', badge:'MCFC', bg:'#6CABDD', fg:'#fff', league:'Premier League' },
+  { id:'realmadrid', name:'Real Madrid', badge:'RM', bg:'#FEBE10', fg:'#000', league:'La Liga' },
+  { id:'barcelona', name:'Barcelona', badge:'FCB', bg:'#A50044', fg:'#fff', league:'La Liga' },
+  { id:'bayern', name:'Bayern Munich', badge:'FCB', bg:'#DC052D', fg:'#fff', league:'Bundesliga' },
+  { id:'psg', name:'Paris Saint-Germain', badge:'PSG', bg:'#003399', fg:'#fff', league:'Ligue 1' },
+  { id:'juventus', name:'Juventus', badge:'JUV', bg:'#1e1e1e', fg:'#fff', league:'Serie A' },
+];
+
+// Football Unsplash images (varied IDs)
+const IMGS = [
+  'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1521651201144-634f700b36ef?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1605235186583-a8272b61f9fe?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1471295253337-3ceaaedca402?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1600679472829-3044539ce8ed?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=600&h=400&fit=crop',
+];
+
+function img(i) { return IMGS[i % IMGS.length]; }
+
+const ALL_NEWS = [
+  // ARSENAL
+  { id:1, tier:1, source:'Fabrizio Romano', headline:'Arsenal complete £65M signing of Alexander Isak from Newcastle United — "Here we go!"', cat:'TRANSFER', club:'Arsenal', ts:2, imgIdx:0, acc:96, eng:{c:241,s:189,bk:97} },
+  { id:2, tier:1, source:'David Ornstein', headline:'Arsenal 3-1 Manchester City: Saka brace seals top-of-table thriller at the Emirates', cat:'MATCH', club:'Arsenal', ts:5, imgIdx:1, acc:99, eng:{c:512,s:344,bk:201} },
+  { id:3, tier:2, source:'Sky Sports', headline:'Arsenal weighing a move for Lautaro Martinez as Arteta targets elite striker this window', cat:'TRANSFER', club:'Arsenal', ts:7, imgIdx:2, acc:74, eng:{c:88,s:67,bk:42} },
+  { id:4, tier:1, source:'BBC Sport', headline:'Bukayo Saka signs new five-year deal with Arsenal, committing future until 2030', cat:'CLUB', club:'Arsenal', ts:3, imgIdx:3, acc:99, eng:{c:389,s:298,bk:145} },
+  { id:5, tier:3, source:'The Sun', headline:'Arsenal secretly bid £90M for Kylian Mbappé to return to Premier League — EXCLUSIVE', cat:'TRANSFER', club:'Arsenal', ts:12, imgIdx:4, acc:18, eng:{c:32,s:21,bk:8} },
+  { id:6, tier:1, source:'Fabrizio Romano', headline:'Declan Rice named Arsenal vice-captain ahead of new Premier League season', cat:'SQUAD', club:'Arsenal', ts:9, imgIdx:5, acc:97, eng:{c:156,s:112,bk:78} },
+  { id:7, tier:2, source:'ESPN', headline:'Ben White reportedly close to agreeing personal terms with Real Madrid — negotiations ongoing', cat:'TRANSFER', club:'Arsenal', ts:11, imgIdx:6, acc:71, eng:{c:78,s:54,bk:31} },
+  { id:8, tier:1, source:'Arsenal FC', headline:'Arsenal officially open new £50M state-of-the-art training complex in Hale End', cat:'CLUB', club:'Arsenal', ts:6, imgIdx:7, acc:99, eng:{c:201,s:167,bk:89} },
+  { id:9, tier:1, source:'Sky Sports', headline:'Martin Ødegaard fit for Arsenal vs Tottenham after recovering from ankle issue', cat:'SQUAD', club:'Arsenal', ts:4, imgIdx:8, acc:95, eng:{c:133,s:99,bk:61} },
+  { id:10, tier:3, source:'Daily Mirror', headline:'Arsenal and Chelsea both plotting audacious £120M summer swoop for Erling Haaland', cat:'TRANSFER', club:'Arsenal', ts:14, imgIdx:9, acc:12, eng:{c:22,s:14,bk:5} },
+  // CHELSEA
+  { id:11, tier:1, source:'Fabrizio Romano', headline:'Chelsea sign Mathys Tel from Bayern Munich for £52M — deal signed, medicals complete', cat:'TRANSFER', club:'Chelsea', ts:1, imgIdx:10, acc:97, eng:{c:298,s:221,bk:134} },
+  { id:12, tier:1, source:'David Ornstein', headline:'Chelsea 2-0 Tottenham: Palmer masterclass lights up Stamford Bridge', cat:'MATCH', club:'Chelsea', ts:4, imgIdx:11, acc:99, eng:{c:443,s:312,bk:187} },
+  { id:13, tier:2, source:'The Athletic', headline:'Chelsea monitoring Florian Wirtz situation closely — contact made with Bayer Leverkusen', cat:'TRANSFER', club:'Chelsea', ts:8, imgIdx:12, acc:76, eng:{c:102,s:77,bk:48} },
+  { id:14, tier:1, source:'Sky Sports', headline:'Cole Palmer wins FWA Footballer of the Year after exceptional Premier League season', cat:'SQUAD', club:'Chelsea', ts:5, imgIdx:13, acc:99, eng:{c:567,s:489,bk:245} },
+  { id:15, tier:3, source:'Daily Star', headline:'Chelsea line up shock £200M move to re-sign Eden Hazard from retirement — sources claim', cat:'TRANSFER', club:'Chelsea', ts:13, imgIdx:14, acc:8, eng:{c:18,s:9,bk:3} },
+  { id:16, tier:1, source:'BBC Sport', headline:'Chelsea confirm record season ticket sales ahead of new campaign at Stamford Bridge', cat:'CLUB', club:'Chelsea', ts:6, imgIdx:0, acc:99, eng:{c:178,s:143,bk:72} },
+  { id:17, tier:2, source:'L\'Equipe', headline:'Christopher Nkunku drawing interest from PSG as Chelsea consider loan offers', cat:'TRANSFER', club:'Chelsea', ts:10, imgIdx:1, acc:68, eng:{c:64,s:43,bk:27} },
+  { id:18, tier:1, source:'Fabrizio Romano', headline:'Chelsea agree deal to sign Pedro Neto from Wolves — fee £54M plus add-ons', cat:'TRANSFER', club:'Chelsea', ts:2, imgIdx:2, acc:96, eng:{c:312,s:234,bk:118} },
+  // REAL MADRID
+  { id:19, tier:1, source:'Marca', headline:'Real Madrid win Club World Cup: Vinicius Jr named player of the tournament', cat:'MATCH', club:'Real Madrid', ts:3, imgIdx:3, acc:99, eng:{c:891,s:734,bk:412} },
+  { id:20, tier:1, source:'Fabrizio Romano', headline:'Real Madrid confirm signing of Trent Alexander-Arnold on free transfer from Liverpool', cat:'TRANSFER', club:'Real Madrid', ts:1, imgIdx:4, acc:98, eng:{c:756,s:612,bk:334} },
+  { id:21, tier:2, source:'AS', headline:'Real Madrid eyeing Rodri replacement as Manchester City midfielder linked with Bernabéu move', cat:'TRANSFER', club:'Real Madrid', ts:7, imgIdx:5, acc:72, eng:{c:123,s:98,bk:54} },
+  { id:22, tier:1, source:'David Ornstein', headline:'Vinicius Jr signs contract extension with Real Madrid until 2030 — club confirms', cat:'SQUAD', club:'Real Madrid', ts:4, imgIdx:6, acc:99, eng:{c:445,s:378,bk:201} },
+  { id:23, tier:3, source:'Don Balón', headline:'Real Madrid prepare €350M world-record bid for Erling Haaland — Florentino ready', cat:'TRANSFER', club:'Real Madrid', ts:13, imgIdx:7, acc:11, eng:{c:41,s:28,bk:12} },
+  { id:24, tier:1, source:'Marca', headline:'Real Madrid set to break ground on Bernabéu south extension worth €400M', cat:'CLUB', club:'Real Madrid', ts:8, imgIdx:8, acc:95, eng:{c:234,s:198,bk:87} },
+  { id:25, tier:2, source:'Sky Sports', headline:'Kylian Mbappé linked with shock early return to PSG after difficult first Madrid season', cat:'TRANSFER', club:'Real Madrid', ts:10, imgIdx:9, acc:69, eng:{c:87,s:61,bk:34} },
+  // LIVERPOOL
+  { id:26, tier:1, source:'Fabrizio Romano', headline:'Liverpool sign Federico Valverde from Real Madrid for £85M — "Here we go!"', cat:'TRANSFER', club:'Liverpool', ts:2, imgIdx:10, acc:97, eng:{c:534,s:412,bk:223} },
+  { id:27, tier:1, source:'BBC Sport', headline:'Liverpool crowned Premier League champions with record 97 points under Arne Slot', cat:'MATCH', club:'Liverpool', ts:5, imgIdx:11, acc:99, eng:{c:1201,s:987,bk:534} },
+  { id:28, tier:2, source:'Sky Sports', headline:'Liverpool tracking Nico Williams as Klopp-era rebuild continues at Anfield', cat:'TRANSFER', club:'Liverpool', ts:9, imgIdx:12, acc:73, eng:{c:89,s:67,bk:38} },
+  { id:29, tier:1, source:'The Athletic', headline:'Mohamed Salah extends Liverpool contract, ending transfer speculation once and for all', cat:'SQUAD', club:'Liverpool', ts:3, imgIdx:13, acc:99, eng:{c:789,s:654,bk:345} },
+  { id:30, tier:3, source:'The Sun', headline:'Liverpool close to shock free transfer of Lionel Messi following MLS exit — dream move', cat:'TRANSFER', club:'Liverpool', ts:12, imgIdx:14, acc:6, eng:{c:24,s:16,bk:7} },
+  { id:31, tier:1, source:'Liverpool FC', headline:'Anfield Road stand expansion complete — capacity now 61,000 for upcoming season', cat:'CLUB', club:'Liverpool', ts:6, imgIdx:0, acc:99, eng:{c:312,s:267,bk:134} },
+  { id:32, tier:2, source:'ESPN', headline:'Liverpool considering summer bid for Lamine Yamal as Barcelona face financial pressure', cat:'TRANSFER', club:'Liverpool', ts:11, imgIdx:1, acc:66, eng:{c:67,s:48,bk:29} },
+  // MANCHESTER UNITED
+  { id:33, tier:1, source:'Fabrizio Romano', headline:'Manchester United confirm signing of Joao Neves from Benfica for £52M', cat:'TRANSFER', club:'Manchester United', ts:2, imgIdx:2, acc:96, eng:{c:445,s:334,bk:178} },
+  { id:34, tier:2, source:'The Athletic', headline:'INEOS targeting a marquee centre-back signing as United rebuild continues under Amorim', cat:'TRANSFER', club:'Manchester United', ts:7, imgIdx:3, acc:74, eng:{c:78,s:56,bk:31} },
+  { id:35, tier:1, source:'Sky Sports', headline:'Rasmus Højlund hat-trick fires Manchester United to 4-1 win over Newcastle', cat:'MATCH', club:'Manchester United', ts:4, imgIdx:4, acc:99, eng:{c:387,s:298,bk:156} },
+  { id:36, tier:3, source:'Daily Mirror', headline:'United to rip up Amorim contract and appoint Pep Guardiola as next manager — SHOCK EXCLUSIVE', cat:'CLUB', club:'Manchester United', ts:13, imgIdx:5, acc:9, eng:{c:29,s:18,bk:6} },
+  { id:37, tier:1, source:'BBC Sport', headline:'Old Trafford redevelopment plan approved — new 100,000 capacity stadium by 2030', cat:'CLUB', club:'Manchester United', ts:5, imgIdx:6, acc:98, eng:{c:567,s:489,bk:267} },
+  { id:38, tier:2, source:'ESPN', headline:'Marcus Rashford drawing interest from Galatasaray following Man United exit — personal terms close', cat:'TRANSFER', club:'Manchester United', ts:9, imgIdx:7, acc:71, eng:{c:112,s:87,bk:44} },
+  { id:39, tier:1, source:'Fabrizio Romano', headline:'Kobbie Mainoo signs new long-term Manchester United contract — commitment confirmed', cat:'SQUAD', club:'Manchester United', ts:3, imgIdx:8, acc:97, eng:{c:312,s:245,bk:123} },
+];
+
+// ═══════════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════════
+let currentScreen = '';
+let selectedClubs = new Set();
+let selectedLeagues = new Set();
+let bsFilterOn = false;
+let activeClub = 'all';
+let activeCat = 'LATEST';
+let visibleCount = 10;
+let feedData = [];
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+function navigate(screen) {
+  if (currentScreen) {
+    document.getElementById('screen-' + currentScreen).classList.remove('active');
+  }
+  document.getElementById('screen-' + screen).classList.add('active');
+  currentScreen = screen;
+  window.scrollTo(0,0);
+  if (screen === 'feed') initFeed();
+  if (screen === 'onboard-clubs') initClubSelection();
+}
+
+function getUser() {
+  try { return JSON.parse(localStorage.getItem('fieldview_user')); } catch(e) { return null; }
+}
+
+function init() {
+  const user = getUser();
+  if (!user) { navigate('landing'); return; }
+  const onboarded = localStorage.getItem('fieldview_onboarding_complete');
+  if (!onboarded) { navigate('onboard-welcome'); return; }
+  navigate('feed');
+}
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const err = document.getElementById('login-err');
+  if (!email || !pw) { err.style.display = 'block'; err.textContent = 'Please fill all fields.'; return; }
+  err.style.display = 'none';
+  localStorage.setItem('fieldview_user', JSON.stringify({ email, authenticated: true }));
+  const onboarded = localStorage.getItem('fieldview_onboarding_complete');
+  if (!onboarded) { navigate('onboard-welcome'); } else { navigate('feed'); }
+}
+
+function doRegister() {
+  const email = document.getElementById('reg-email').value.trim();
+  const pw = document.getElementById('reg-pw').value;
+  const pw2 = document.getElementById('reg-pw2').value;
+  const err = document.getElementById('reg-err');
+  if (!email || !pw || !pw2) { err.style.display = 'block'; err.textContent = 'Please fill all fields.'; return; }
+  if (pw !== pw2) { err.style.display = 'block'; err.textContent = 'Passwords do not match.'; return; }
+  err.style.display = 'none';
+  localStorage.setItem('fieldview_user', JSON.stringify({ email, authenticated: true }));
+  navigate('onboard-welcome');
+}
+
+function doLogout() {
+  if (!confirm('Log out?')) return;
+  localStorage.removeItem('fieldview_user');
+  localStorage.removeItem('fieldview_onboarding_complete');
+  navigate('landing');
+}
+
+// ═══════════════════════════════════════════════
+// ONBOARDING – CLUBS
+// ═══════════════════════════════════════════════
+function initClubSelection() {
+  const saved = JSON.parse(localStorage.getItem('fieldview_selected_clubs') || '[]');
+  selectedClubs = new Set(saved.filter(x => ALL_CLUBS.find(c=>c.id===x)));
+  selectedLeagues = new Set(saved.filter(x => LEAGUES.find(l=>l.id===x)));
+  renderClubGrids('');
+}
+
+function renderClubGrids(q) {
+  const lg = document.getElementById('leagues-grid');
+  const cg = document.getElementById('clubs-grid');
+  const ql = q.toLowerCase();
+  const leagues = LEAGUES.filter(l => !q || l.name.toLowerCase().includes(ql));
+  const clubs = ALL_CLUBS.filter(c => !q || c.name.toLowerCase().includes(ql));
+  lg.innerHTML = leagues.map(l => clubChipHTML(l.id, l.flag + ' ' + l.name, '', l.id, true)).join('');
+  cg.innerHTML = clubs.map(c => clubChipHTML(c.id, c.badge, c.name, c.id, false, c.bg, c.fg)).join('');
+  updateSelCount();
+}
+
+function clubChipHTML(id, badge, name, key, isLeague, bg, fg) {
+  const sel = isLeague ? selectedLeagues.has(key) : selectedClubs.has(key);
+  const lbl = isLeague ? badge : name;
+  const sub = isLeague ? '' : `<div class="club-league">${ALL_CLUBS.find(c=>c.id===key)?.league||''}</div>`;
+  const badgeContent = isLeague
+    ? `<div class="club-badge" style="background:#1a1a1a;font-size:18px;">${badge.split(' ')[0]}</div>`
+    : `<div class="club-badge" style="background:${bg};color:${fg}">${badge}</div>`;
+  return `<div class="club-chip ${sel?'selected':''}" onclick="toggleClubSel('${key}',${isLeague})">
+    ${badgeContent}
+    <div><div class="club-name">${lbl}</div>${sub}</div>
+    <span class="check-icon">✓</span>
+  </div>`;
+}
+
+function toggleClubSel(id, isLeague) {
+  const set = isLeague ? selectedLeagues : selectedClubs;
+  if (set.has(id)) set.delete(id); else set.add(id);
+  updateSelCount();
+  const el = document.querySelector(`[onclick="toggleClubSel('${id}',${isLeague})"]`);
+  if (el) el.classList.toggle('selected', isLeague ? selectedLeagues.has(id) : selectedClubs.has(id));
+  const check = el?.querySelector('.check-icon');
+  if (check) check.style.display = (isLeague ? selectedLeagues.has(id) : selectedClubs.has(id)) ? 'block' : 'none';
+}
+
+function updateSelCount() {
+  const total = selectedClubs.size + selectedLeagues.size;
+  document.getElementById('sel-count').textContent = total;
+  const btn = document.getElementById('clubs-continue-btn');
+  btn.disabled = total === 0;
+  btn.style.opacity = total > 0 ? '1' : '0.4';
+  btn.style.cursor = total > 0 ? 'pointer' : 'not-allowed';
+  // Save
+  const all = [...selectedClubs, ...selectedLeagues];
+  localStorage.setItem('fieldview_selected_clubs', JSON.stringify(all));
+}
+
+function filterClubs(v) { renderClubGrids(v); }
+
+// ═══════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════
+function enableNotifs() {
+  localStorage.setItem('fieldview_notifications_enabled', 'true');
+  localStorage.setItem('fieldview_onboarding_complete', 'true');
+  navigate('feed');
+}
+function skipNotifs() {
+  localStorage.setItem('fieldview_onboarding_complete', 'true');
+  navigate('feed');
+}
+
+// ═══════════════════════════════════════════════
+// FEED
+// ═══════════════════════════════════════════════
+function initFeed() {
+  bsFilterOn = localStorage.getItem('fieldview_bs_filter') === 'true';
+  updateBSBtn();
+
+  const saved = JSON.parse(localStorage.getItem('fieldview_selected_clubs') || '[]');
+  const clubIds = saved.filter(x => ALL_CLUBS.find(c=>c.id===x));
+  const myClubs = clubIds.length > 0
+    ? clubIds.map(id => ALL_CLUBS.find(c=>c.id===id)).filter(Boolean)
+    : ALL_CLUBS.slice(0,5);
+
+  // Quick switch
+  const qs = document.getElementById('quick-switch');
+  qs.innerHTML = `<button class="qs-tab active" id="qs-all" onclick="switchClub('all',this)">🌐 All</button>` +
+    myClubs.map(c => `<button class="qs-tab" id="qs-${c.id}" onclick="switchClub('${c.id}',this)">${c.badge} ${c.name}</button>`).join('') +
+    `<button class="qs-add" onclick="openAddClub()">+ Add</button>`;
+
+  // Avatar
+  const user = getUser();
+  if (user) document.getElementById('user-avatar').textContent = user.email[0].toUpperCase();
+
+  switchClub('all', document.getElementById('qs-all'));
+}
+
+function switchClub(clubId, el) {
+  activeClub = clubId;
+  document.querySelectorAll('.qs-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  activeCat = 'LATEST';
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.cat-tab')[0].classList.add('active');
+  visibleCount = 10;
+  renderFeed();
+}
+
+function switchTab(cat, el) {
+  activeCat = cat;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  visibleCount = 10;
+  renderFeed();
+}
+
+function getFilteredNews() {
+  let news = [...ALL_NEWS];
+  if (activeClub !== 'all') {
+    const club = ALL_CLUBS.find(c=>c.id===activeClub);
+    if (club) news = news.filter(n => n.club === club.name);
+  }
+  if (activeCat !== 'LATEST') {
+    news = news.filter(n => n.cat === activeCat);
+  }
+  if (bsFilterOn) {
+    news = news.filter(n => n.tier !== 3);
+  }
+  return news;
+}
+
+function renderFeed() {
+  const container = document.getElementById('feed-cards');
+  const news = getFilteredNews();
+  const visible = news.slice(0, visibleCount);
+  const lmBtn = document.getElementById('load-more-btn');
+
+  if (visible.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">📭</div><h3>No stories found</h3><p>Try switching clubs or disabling the BS Filter</p></div>`;
+    lmBtn.style.display = 'none';
+    return;
+  }
+
+  container.innerHTML = visible.map((n, i) => newsCardHTML(n, i)).join('');
+  lmBtn.style.display = news.length > visibleCount ? 'block' : 'none';
+}
+
+function loadMore() {
+  visibleCount += 10;
+  renderFeed();
+}
+
+function newsCardHTML(n, idx) {
+  const tierClass = 't' + n.tier;
+  const tierLabel = n.tier === 1 ? '🟢 TIER 1' : n.tier === 2 ? '🟡 TIER 2' : '🔴 TIER 3';
+  const accClass = n.acc >= 85 ? 'high' : n.acc >= 60 ? 'mid' : 'low';
+  const ago = timeAgo(n.ts);
+  const delay = (idx % 10) * 30;
+  return `
+  <div class="news-card ${tierClass}" style="animation-delay:${delay}ms">
+    <div class="card-inner">
+      <div class="card-meta">
+        <span class="tier-badge ${tierClass}">${tierLabel}</span>
+        <span class="card-source">${n.source}</span>
+        <span class="card-time">${ago}</span>
+      </div>
+      <div class="card-headline">${n.headline}</div>
+    </div>
+    <div class="card-img-wrap">
+      <img class="card-img" src="${img(n.imgIdx)}" alt="news" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="card-img-placeholder" style="display:none">⚽</div>
+    </div>
+    <div class="card-footer">
+      <div class="accuracy-badge ${accClass}">⚡ ${n.acc}%</div>
+      <div class="card-actions">
+        <div class="card-action">💬 ${n.eng.c}</div>
+        <div class="card-action" onclick="event.stopPropagation();this.style.color='var(--green)'">🔄 ${n.eng.s}</div>
+        <div class="card-action" onclick="event.stopPropagation();this.style.color='var(--yellow)'">🔖 ${n.eng.bk}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function timeAgo(h) {
+  if (h < 1) return 'Just now';
+  if (h === 1) return '1 hour ago';
+  if (h < 24) return h + ' hours ago';
+  return Math.floor(h/24) + ' days ago';
+}
+
+// ═══════════════════════════════════════════════
+// BS FILTER
+// ═══════════════════════════════════════════════
+function toggleBS() {
+  bsFilterOn = !bsFilterOn;
+  localStorage.setItem('fieldview_bs_filter', bsFilterOn);
+  updateBSBtn();
+  renderFeed();
+}
+function updateBSBtn() {
+  const btn = document.getElementById('bs-toggle-btn');
+  btn.textContent = 'BS Filter: ' + (bsFilterOn ? 'ON' : 'OFF');
+  btn.className = 'bs-toggle' + (bsFilterOn ? ' on' : '');
+}
+
+// ═══════════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════════
+function openSearch() {
+  document.getElementById('search-modal').classList.add('open');
+  setTimeout(() => document.getElementById('search-input').focus(), 100);
+  doSearch('');
+}
+function closeSearch() {
+  document.getElementById('search-modal').classList.remove('open');
+  document.getElementById('search-input').value = '';
+}
+function closeSearchOnBg(e) {
+  if (e.target === document.getElementById('search-modal')) closeSearch();
+}
+function doSearch(q) {
+  const clubs = ALL_CLUBS.filter(c => !q || c.name.toLowerCase().includes(q.toLowerCase()));
+  const res = document.getElementById('search-results');
+  if (!clubs.length) { res.innerHTML = '<div class="no-results">No clubs found for "'+q+'"</div>'; return; }
+  res.innerHTML = clubs.map(c => `
+    <div class="search-result" onclick="searchSelectClub('${c.id}')">
+      <div class="club-badge" style="background:${c.bg};color:${c.fg};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${c.badge}</div>
+      <div><div class="club-name">${c.name}</div><div class="club-league">${c.league}</div></div>
+      <span style="margin-left:auto;color:var(--text3);font-size:18px">→</span>
+    </div>`).join('');
+}
+function searchSelectClub(clubId) {
+  closeSearch();
+  // Switch to club in quick switch — add if not there
+  let btn = document.getElementById('qs-' + clubId);
+  if (!btn) {
+    // Add dynamically
+    const club = ALL_CLUBS.find(c=>c.id===clubId);
+    const qs = document.getElementById('quick-switch');
+    const addBtn = qs.querySelector('.qs-add');
+    const newBtn = document.createElement('button');
+    newBtn.className = 'qs-tab';
+    newBtn.id = 'qs-' + clubId;
+    newBtn.textContent = club.badge + ' ' + club.name;
+    newBtn.onclick = () => switchClub(clubId, newBtn);
+    qs.insertBefore(newBtn, addBtn);
+    btn = newBtn;
+  }
+  switchClub(clubId, btn);
+}
+
+// ═══════════════════════════════════════════════
+// ADD CLUB MODAL
+// ═══════════════════════════════════════════════
+function openAddClub() {
+  const grid = document.getElementById('add-club-grid');
+  grid.innerHTML = ALL_CLUBS.map(c => `
+    <div class="club-chip" onclick="addClubToSwitch('${c.id}')">
+      <div class="club-badge" style="background:${c.bg};color:${c.fg}">${c.badge}</div>
+      <div><div class="club-name" style="font-size:12px">${c.name}</div><div class="club-league">${c.league}</div></div>
+    </div>`).join('');
+  document.getElementById('add-club-modal').classList.add('open');
+}
+function closeAddClub() { document.getElementById('add-club-modal').classList.remove('open'); }
+function closeAddClubOnBg(e) { if (e.target === document.getElementById('add-club-modal')) closeAddClub(); }
+function addClubToSwitch(clubId) {
+  closeAddClub();
+  searchSelectClub(clubId);
+}
+
+// ═══════════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeSearch(); closeAddClub(); }
+});
+
+// ═══════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
